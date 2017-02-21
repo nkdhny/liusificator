@@ -15,11 +15,14 @@
 
 #define LOW_ANGLE 10
 #define HIGH_ANGLE 170
+#define MAX_ANGLE 180
 
 #define LEFT_SERVO 0
 #define RIGHT_SERVO 17
 
 #define AUTO_MODE_ITERATIONS 10
+
+#define POLARITY 1
 
 int mode = NEUTRAL_MODE;
 int autoModeIterationsBeforeChange = 0;
@@ -93,21 +96,26 @@ int readAngle() {
   return constrain(angle, LOW_ANGLE, HIGH_ANGLE);
 }
 
-void actManual() {
-  int angle = readAngle();
+void setAngle(int angle) {
   if (angle != servoAngle) {
-    sLeft.write(angle);
-    sRight.write(angle);
+    if (POLARITY == 1) {
+      sLeft.write(angle);
+      sRight.write(MAX_ANGLE - angle);
+    } else {
+      sRight.write(angle);
+      sLeft.write(MAX_ANGLE - angle);
+    }
     servoAngle = angle;
   }
 }
 
+void actManual() {
+  int angle = readAngle();
+  setAngle(angle);
+}
+
 void actNeutral() {
-  if (LOW_ANGLE != servoAngle) {
-    sLeft.write(LOW_ANGLE);
-    sRight.write(LOW_ANGLE);
-    servoAngle = LOW_ANGLE;
-  }
+  setAngle(LOW_ANGLE);
 }
 
 void actAuto() {
@@ -120,17 +128,9 @@ void actAuto() {
     autoModeGoingToLow = !autoModeGoingToLow;
     if (!autoModeGoingToLow) {
       int angle = readAngle();
-      if (angle != servoAngle) {
-        sLeft.write(angle);
-        sRight.write(angle);
-        servoAngle = angle;
-      }
+      setAngle(angle);
     } else {
-      if (LOW_ANGLE != servoAngle) {
-        sLeft.write(LOW_ANGLE);
-        sRight.write(LOW_ANGLE);
-        servoAngle = LOW_ANGLE;
-      }
+      setAngle(LOW_ANGLE);
     }
   }
 
